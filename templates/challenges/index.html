@@ -1,0 +1,25 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Gadget Vault</title>
+</head>
+<body class="bg-black text-gray-200">
+    <div class="container mx-auto px-4 py-8">
+        {% include "partials/_stat_grid.html" with stats=stats %}
+
+        <h2 class="text-3xl font-bold mb-6 text-white">Aktív Gadgetek</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for gadget in gadgets %}
+                {% include "partials/_gadget_card.html" with gadget=gadget %}
+            {% empty %}
+                <p class="text-gray-500 italic">Még nincsenek adatok a rendszerben.</p>
+            {% endfor %}
+        </div>
+    </div>
+    {% include "partials/_mobile_nav.html" %}
+</body>
+</html>
