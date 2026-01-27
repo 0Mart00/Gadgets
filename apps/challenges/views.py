@@ -10,16 +10,22 @@ from .models import Gadget
 from .services import ChallengeService, GadgetService
 import markdown
 from django.utils.safestring import mark_safe
+
+import json
+from django.http import JsonResponse
+from .models import Gadget, Vote
 # 1. A Dashboard a HTML megjelenítéséhez
 class DashboardView(View):
     def get(self, request):
-        gadgets = Gadget.objects.all().order_by('-created_at')
-        stats = {
-            "total_gadgets": gadgets.count(),
-        }
+        gadgets = Gadget.objects.all().order_by('operating_cost')
+        
+        # Itt egy listát kellene vezetni a felhasználó által már "birtokolt" gadgetekről
+        # Teszt jelleggel tegyük fel, hogy az alap cuccok (0 költség) megvannak
+        user_unlocked_ids = [g.id for g in gadgets if g.operating_cost == 0]
+
         return render(request, 'challenges/index.html', {
             'gadgets': gadgets,
-            'stats': stats
+            'user_unlocked_ids': user_unlocked_ids
         })
 
 class GadgetCreateView(View):
@@ -82,3 +88,32 @@ class GadgetAPIView(View):
             })
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+
+class GadgetVoteView(View):
+    def post(self, request, pk):
+        if not request.user.is_authenticated:
+            return JsonResponse({'status': 'error', 'message': 'Be kell jelentkezned!'}, status=403)
+            
+        data = json.loads(request.body)
+        value = int(data.get('value', 0))
+        
+        if value not in [1, -1]:
+            return JsonResponse({'status': 'error', 'message': 'Érvénytelen érték.'}, status=400)
+
+        # Szavazat mentése vagy frissítése
+        vote, created = Vote.objects.update_or_create(
+            user=request.user,
+            gadget_id=pk,
+            defaults={'value': value}
+        )
+
+        # Új összpontszám kiszámítása
+        gadget = Gadget.objects.get(pk=pk)
+        total_score = sum(v.value for v in gadget.votes.all())
+
+        return JsonResponse({
+            'status': 'success',
+            'total_score': total_score
+        })

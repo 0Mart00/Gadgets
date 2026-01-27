@@ -3,17 +3,37 @@ from apps.core.mixins import JsonQueryMixin
 from django.contrib.auth.models import User
 
 
+
 class Gadget(models.Model):
     name = models.CharField(max_length=255)
     slug = models.SlugField(unique=True, blank=True)
     specs = models.JSONField(default=dict, blank=True)
-    # Új mezők a README és a főkép számára
-    readme_content = models.TextField(blank=True, help_text="Írj Markdown formátumban, mint a GitHubon")
-    external_links = models.JSONField(default=list, blank=True) # [ {"label": "Docs", "url": "..."}, ... ]
+    
+    # Stratégiai és erőforrás mezők
+    operating_cost = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    # Research Tree: Önmagára mutat, így építhető egymásra a technológia
+    prerequisite = models.ForeignKey(
+        'self', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='unlocks'
+    )
+
+    readme_content = models.TextField(
+        blank=True, 
+        help_text="Írj Markdown formátumban, mint a GitHubon"
+    )
+    external_links = models.JSONField(default=list, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
         return self.name
+
+    @property
+    def total_score(self):
+        # A szavazatok összegzése a property segítségével
+        return sum(v.value for v in self.votes.all())
 
 
 class Comment(models.Model): # <--- Figyelj a nagybetűs Model-re és a szülőosztályra!
