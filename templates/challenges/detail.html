@@ -1,0 +1,149 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>{{ gadget.name }} | Részletes Adatlap</title>
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 10px; }
+        /* Detail.html-be a README stílusához */
+        .readme-content h1 { font-size: 2rem; font-weight: 800; color: white; margin-bottom: 1rem; border-bottom: 1px solid #374151; padding-bottom: 0.5rem; }
+        .readme-content h2 { font-size: 1.5rem; font-weight: 700; color: white; margin-top: 1.5rem; }
+        .readme-content p { margin-bottom: 1rem; line-height: 1.6; }
+        .readme-content ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1rem; }
+        .readme-content code { background: #1f2937; padding: 0.2rem 0.4rem; border-radius: 0.4rem; font-family: monospace; }
+    </style>
+</head>
+<body class="bg-black text-gray-200 font-sans selection:bg-blue-500/30">
+
+    <div class="container mx-auto px-4 py-12 max-w-5xl">
+        <a href="{% url 'challenges:dashboard' %}" class="inline-flex items-center text-sm font-bold text-gray-500 hover:text-blue-500 transition mb-10 group">
+            <svg class="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            VISSZA A DASHBOARDRA
+        </a>
+
+        <div class="bg-gray-900 border border-gray-800 rounded-[2.5rem] overflow-hidden shadow-2xl">
+            <div class="p-8 md:p-12">
+                
+                <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+                    <div>
+                        <span class="text-blue-500 font-mono text-xs tracking-[0.3em] uppercase mb-2 block">System Gadget Node</span>
+                        <h1 class="text-5xl md:text-7xl font-black text-white tracking-tighter">{{ gadget.name }}</h1>
+                    </div>
+                    <div class="flex items-center space-x-4 bg-black/40 p-3 rounded-2xl border border-gray-800">
+                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-sm font-bold text-gray-300 uppercase tracking-widest">Online / Active</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+                    {% for key, value in gadget.specs.items %}
+                    <div class="bg-black/50 p-6 rounded-2xl border border-gray-800 hover:border-blue-900 transition group">
+                        <span class="block text-gray-600 text-xs font-bold uppercase tracking-widest mb-2 group-hover:text-blue-500 transition">{{ key }}</span>
+                        <span class="text-xl font-mono text-white">{{ value }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-12 bg-white/5 border border-gray-800 rounded-2xl p-8">
+                    <div class="flex items-center space-x-2 mb-6 border-b border-gray-800 pb-4">
+                        <svg class="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+                        <span class="text-sm font-mono text-gray-400">README.md</span>
+                    </div>
+                    
+                    <article class="prose prose-invert max-w-none text-gray-300">
+                        {{ readme_html }}
+                    </article>
+                </div>
+                <div class="border-t border-gray-800 pt-12">
+                    <h3 class="text-3xl font-bold text-white mb-8 flex items-center">
+                        <svg class="w-8 h-8 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path>
+                        </svg>
+                        Észrevételek
+                    </h3>
+
+                    {% if user.is_authenticated %}
+                    <div class="bg-black/40 border border-gray-800 p-6 rounded-3xl mb-12">
+                        <form method="POST" enctype="multipart/form-data" class="space-y-4">
+                            {% csrf_token %}
+                            <textarea name="text" rows="4" required
+                                class="w-full bg-gray-900 border border-gray-800 rounded-2xl p-4 text-white outline-none focus:border-blue-600 transition resize-none"
+                                placeholder="Írd le a technikai észrevételeidet..."></textarea>
+                            
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div class="flex items-center space-x-2">
+                                    <label class="cursor-pointer bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                        KÉP CSATOLÁSA
+                                        <input type="file" name="image" class="hidden" accept="image/*">
+                                    </label>
+                                    <span id="file-chosen" class="text-[10px] text-gray-600 italic">Nincs fájl kiválasztva</span>
+                                </div>
+                                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-black px-8 py-3 rounded-xl transition transform active:scale-95">
+                                    BEJEGYZÉS KÜLDÉSE
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    {% else %}
+                    <div class="bg-gray-900/50 border border-dashed border-gray-800 p-8 rounded-3xl text-center mb-12">
+                        <p class="text-gray-500">A kommenteléshez és fájlcsatoláshoz <a href="{% url 'accounts:login' %}" class="text-blue-500 font-bold hover:underline">be kell jelentkezned</a>.</p>
+                    </div>
+                    {% endif %}
+
+                    <div class="space-y-8">
+                        {% for comment in comments %}
+                        <div class="flex space-x-4 group">
+                            <div class="flex-shrink-0 w-10 h-10 bg-blue-600/20 rounded-full flex items-center justify-center text-blue-500 font-bold uppercase">
+                                {{ comment.author.username|slice:":1" }}
+                            </div>
+                            <div class="flex-grow bg-gray-800/20 p-6 rounded-3xl border border-gray-800 group-hover:border-gray-700 transition">
+                                <div class="flex justify-between items-center mb-4">
+                                    <span class="font-bold text-blue-400 font-mono">{{ comment.author.username }}</span>
+                                    <span class="text-[10px] text-gray-600 uppercase tracking-widest">{{ comment.created_at|date:"Y.m.d | H:i" }}</span>
+                                </div>
+                                <p class="text-gray-300 leading-relaxed">{{ comment.text }}</p>
+                                
+                                {% if comment.image %}
+                                <div class="mt-6">
+                                    <a href="{{ comment.image.url }}" target="_blank">
+                                        <img src="{{ comment.image.url }}" alt="csatolmány" 
+                                            class="rounded-2xl border border-gray-800 max-h-96 w-auto hover:opacity-80 transition cursor-zoom-in">
+                                    </a>
+                                </div>
+                            {% else %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-10">
+                            <p class="text-gray-600 italic">Még nincsenek adatok a naplóban.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Képválasztó visszajelzés
+        const fileBtn = document.querySelector('input[name="image"]');
+        const fileText = document.getElementById('file-chosen');
+        if(fileBtn) {
+            fileBtn.addEventListener('change', function(){
+                fileText.textContent = this.files[0].name;
+                fileText.classList.add('text-blue-500');
+            });
+        }
+    </script>
+</body>
+</html>

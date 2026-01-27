@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Regisztráció | Vault</title>
+</head>
+<body class="bg-black flex items-center justify-center min-h-screen text-gray-200">
+    <div class="bg-gray-900 p-8 rounded-2xl border border-gray-800 w-full max-w-md shadow-2xl">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-white tracking-tight">Új hozzáférés</h2>
+            <p class="text-gray-500 text-sm mt-2">Csatlakozz a rendszerhez a paraméterek megadásával.</p>
+        </div>
+        
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            
+            {% for field in form %}
+            <div class="flex flex-col">
+                <label class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1 ml-1">
+                    {{ field.label }}
+                </label>
+                <div class="[&>input]:w-full [&>input]:bg-black [&>input]:border [&>input]:border-gray-800 [&>input]:rounded-xl [&>input]:p-3 [&>input]:text-white [&>input]:outline-none focus-within:[&>input]:border-blue-600 focus-within:[&>input]:ring-1 focus-within:[&>input]:ring-blue-600 [&>input]:transition-all">
+                    {{ field }}
+                </div>
+                {% if field.help_text %}
+                    <span class="text-[10px] text-gray-600 mt-1 ml-1 leading-tight">{{ field.help_text }}</span>
+                {% endif %}
+                {% for error in field.errors %}
+                    <span class="text-red-500 text-xs mt-1 ml-1">{{ error }}</span>
+                {% endfor %}
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl mt-6 transition-all transform active:scale-95 shadow-lg shadow-blue-900/20">
+                Fiók létrehozása
+            </button>
+        </form>
+
+        <div class="mt-8 pt-6 border-t border-gray-800 text-center">
+            <p class="text-gray-500 text-sm">
+                Már van fiókod? <a href="{% url 'accounts:login' %}" class="text-blue-400 hover:text-blue-300 font-medium transition">Jelentkezz be</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

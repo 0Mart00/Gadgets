@@ -21,3 +21,46 @@ class ChallengeService:
             specs=specs_data
         )
         return gadget
+    
+class InteractionService:
+    @staticmethod
+    def cast_vote(user, gadget_id, value):
+        from .models import Vote
+        # Ha már van szavazat, frissítjük, ha nincs, létrehozzuk
+        vote, created = Vote.objects.update_or_create(
+            user=user, 
+            gadget_id=gadget_id,
+            defaults={'value': value}
+        )
+        return vote
+
+    @staticmethod
+    def add_comment(user, gadget_id, text, image=None):
+        from .models import Comment
+        return Comment.objects.create(
+            author=user,
+            gadget_id=gadget_id,
+            text=text,
+            image=image
+        )
+
+class GadgetService:
+    @staticmethod
+    def create_gadget(name, readme_content="", main_image=None, specs=None, external_links=None):
+        # Automatikus slug generálás
+        slug = slugify(name)
+        
+        # Alapértelmezett értékek kezelése
+        if specs is None: specs = {}
+        if external_links is None: external_links = []
+        
+        # Mentés az adatbázisba
+        gadget = Gadget.objects.create(
+            name=name,
+            slug=slug,
+            readme_content=readme_content,
+            main_image=main_image,
+            specs=specs,
+            external_links=external_links
+        )
+        return gadget

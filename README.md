@@ -1,0 +1,1 @@
+pip install django django-environ psycopg2-binary pillow django-lifecycle markdown

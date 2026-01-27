@@ -1,15 +1,15 @@
 # apps/challenges/views.py
 
-from django.shortcuts import render
+from django.shortcuts import render,get_object_or_404
 from django.views import View
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 import json
-
 from .models import Gadget
-from .services import ChallengeService
-
+from .services import ChallengeService, GadgetService
+import markdown
+from django.utils.safestring import mark_safe
 # 1. A Dashboard a HTML megjelenítéséhez
 class DashboardView(View):
     def get(self, request):
@@ -22,24 +22,63 @@ class DashboardView(View):
             'stats': stats
         })
 
-# 2. Az API a létrehozáshoz
-@method_decorator(csrf_exempt, name='dispatch')
 class GadgetCreateView(View):
+    def get(self, request):
+        return render(request, 'challenges/create_gadget.html')
+
+    def post(self, request):
+        # A Service-t hívjuk meg itt is!
+        gadget = GadgetService.create_gadget(
+            name=request.POST.get('name'),
+            readme_content=request.POST.get('readme_content'),
+            main_image=request.FILES.get('main_image')
+        )
+        return redirect('challenges:detail', slug=gadget.slug)
+        
+class GadgetDetailView(View):
+    def get(self, request, slug):
+        gadget = get_object_or_404(Gadget, slug=slug)
+        # Markdown konvertálása HTML-re
+        readme_html = mark_safe(markdown.markdown(gadget.readme_content, extensions=['extra', 'codehilite']))
+        
+        comments = gadget.comments.all().order_by('-created_at')
+        return render(request, 'challenges/detail.html', {
+            'gadget': gadget, 
+            'readme_html': readme_html,
+            'comments': comments
+        })
+    def post(self, request, slug):
+        gadget = get_object_or_404(Gadget, slug=slug)
+        text = request.POST.get('text')
+        image = request.FILES.get('image') # Itt kapjuk el a képet!
+
+        if text:
+            from .models import Comment
+            Comment.objects.create(
+                gadget=gadget,
+                author=request.user,
+                text=text,
+                image=image
+            )
+        
+        return redirect('challenges:detail', slug=slug)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class GadgetAPIView(View):
     def post(self, request):
         try:
             data = json.loads(request.body)
-            name = data.get('name')
-            specs = data.get('specs', {})
-
-            if not name:
-                return JsonResponse({"error": "Name is required"}, status=400)
-
-            gadget = ChallengeService.create_with_specs(name=name, specs_data=specs)
-
+            gadget = GadgetService.create_gadget(
+                name=data.get('name'),
+                readme_content=data.get('readme', ""),
+                specs=data.get('specs', {}),
+                external_links=data.get('links', [])
+            )
             return JsonResponse({
-                "id": gadget.id,
+                "status": "success",
                 "slug": gadget.slug,
-                "message": "Gadget created"
-            }, status=201)
+                "url": f"/gadget/{gadget.slug}/"
+            })
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
+            return JsonResponse({"status": "error", "message": str(e)}, status=400)
