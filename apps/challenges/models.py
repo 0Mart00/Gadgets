@@ -8,10 +8,11 @@ class Gadget(models.Model):
     name = models.CharField(max_length=255)
     slug = models.SlugField(unique=True, blank=True)
     specs = models.JSONField(default=dict, blank=True)
-    
+    main_image = models.ImageField(upload_to='gadgets/%Y/%m/%d/', null=True, blank=True)
     # Stratégiai és erőforrás mezők
     operating_cost = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     # Research Tree: Önmagára mutat, így építhető egymásra a technológia
+    operating_cost = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     prerequisite = models.ForeignKey(
         'self', 
         on_delete=models.SET_NULL, 

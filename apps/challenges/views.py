@@ -6,14 +6,12 @@ from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 import json
-from .models import Gadget
 from .services import ChallengeService, GadgetService
 import markdown
 from django.utils.safestring import mark_safe
 
-import json
-from django.http import JsonResponse
 from .models import Gadget, Vote
+
 # 1. A Dashboard a HTML megjelenítéséhez
 class DashboardView(View):
     def get(self, request):
@@ -27,7 +25,7 @@ class DashboardView(View):
             'gadgets': gadgets,
             'user_unlocked_ids': user_unlocked_ids
         })
-
+@method_decorator(csrf_exempt, name='dispatch')
 class GadgetCreateView(View):
     def get(self, request):
         return render(request, 'challenges/create_gadget.html')
